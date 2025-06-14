@@ -2,38 +2,38 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-# Загрузка сохранённых объектов
+# === Загрузка модели и scaler ===
 model = joblib.load('model.pkl')
 scaler = joblib.load('scaler.pkl')
-encoder = joblib.load('encoder.pkl')
 numeric_features = joblib.load('numeric_features.pkl')
-categorical_features = joblib.load('categorical_features.pkl')
 
-st.title("Классификация поставщика")
+st.title("Классификация поставщика по уровню риска")
+st.markdown("Введите значения по каждому показателю, чтобы получить прогноз модели.")
 
+# === Описание признаков ===
+ordered_numeric = [
+    ('x1', 'x1 — Кол-во прошлых заказов'),
+    ('x2', 'x2 — Среднее время доставки (дней)'),
+    ('x3', 'x3 — % доставок в срок (до 100)'),
+    ('x4', 'x4 — Оценка качества материалов (1–5)'),
+    ('x5', 'x5 — % дефектных поставок (до 100)'),
+    ('x6', 'x6 — Сумма контрактов (в рублях, например, ₽500,000)'),
+    ('x7', 'x7 — Рейтинг по отзывам (1–5)'),
+    ('x8', 'x8 — Оценка менеджеров (1–5)')
+]
+
+# === Ввод от пользователя ===
 user_input = {}
+for var, label in ordered_numeric:
+    user_input[var] = st.number_input(label, value=0.0)
 
-# Ввод числовых признаков
-for col in numeric_features:
-    user_input[col] = st.number_input(f"{col}", value=0.0)
-
-# Ввод категориальных признаков
-for col in categorical_features:
-    user_input[col] = st.text_input(f"{col}", value="")
-
-# Преобразуем ввод в DataFrame
+# === Обработка ===
 input_df = pd.DataFrame([user_input])
 
-# Обработка данных
+# Масштабирование
 input_df[numeric_features] = scaler.transform(input_df[numeric_features])
-cat_encoded = encoder.transform(input_df[categorical_features]).toarray()
-cat_encoded_df = pd.DataFrame(cat_encoded, columns=encoder.get_feature_names_out(categorical_features))
 
-# Объединение
-X_user_final = pd.concat([input_df[numeric_features].reset_index(drop=True),
-                          cat_encoded_df.reset_index(drop=True)], axis=1)
-
-# Предсказание
+# === Предсказание ===
 if st.button("Предсказать"):
-    prediction = model.predict(X_user_final)[0]
-    st.success(f"Уровень риска поставщика: **{prediction}**")
+    prediction = model.predict(input_df[numeric_features])[0]
+    st.success(f"Предсказанный уровень риска поставщика: **{prediction}**")
