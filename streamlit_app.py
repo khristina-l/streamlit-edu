@@ -8,7 +8,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestClassifier
 
 # Загрузка модели
-pipe = joblib.load('random_forest_model.pkl')
+pipe = joblib.load('pipeline.pkl')
 
 # Заголовок окна
 st.title("Классификация поставщиков")
