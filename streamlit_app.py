@@ -8,7 +8,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestClassifier
 
 # Загрузка модели
-pipe = joblib.load('pipeline.pkl')
+pipe = joblib.load('random_forest_model.pkl')
 
 # Заголовок окна
 st.title("Классификация поставщиков")
@@ -35,8 +35,23 @@ if st.button("Осуществить классификацию"):
     # Вывод результата
     st.write(f"Класс поставщика: {prediction[0]}")
 
-    # Визуализация одного из деревьев решений
+    # 1. Достаём объекты шага препроцессинга и модели
+    preprocessor = pipe.named_steps['preprocessor']      # или 'columntransformer', смотрите вывод
+    rf_model     = pipe.named_steps['classifier']        # или 'randomforestclassifier'
+
+    # 2. Получаем имена признаков
+    try:
+        feature_names = preprocessor.get_feature_names_out()
+    except AttributeError:                               # на случай более старой версии sklearn
+        feature_names = preprocessor.get_feature_names()
+
+    # 3. Строим дерево
     fig, ax = plt.subplots(figsize=(20, 10))
-    plot_tree(pipe['model'].estimators_[0], feature_names=pipe['prep'].get_feature_names_out(),
-               class_names=pipe['model'].classes_, filled=True, ax=ax)
+    plot_tree(
+        rf_model.estimators_[0],
+        feature_names=feature_names,
+        class_names=rf_model.classes_,
+        filled=True,
+        ax=ax
+    )
     st.pyplot(fig)
