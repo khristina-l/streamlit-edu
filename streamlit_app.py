@@ -3,9 +3,12 @@ import joblib
 import pandas as pd
 from sklearn.tree import plot_tree
 import matplotlib.pyplot as plt
+from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
+from sklearn.ensemble import RandomForestClassifier
 
 # Загрузка модели
-model = joblib.load('random_forest_model.pkl')
+pipe = joblib.load('pipeline.pkl')
 
 # Заголовок окна
 st.title("Классификация поставщиков")
@@ -27,13 +30,13 @@ if st.button("Осуществить классификацию"):
                               columns=['x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7', 'x8'])
 
     # Предсказание класса
-    prediction = model.predict(input_data)
+    prediction = pipe.predict(input_data)
 
     # Вывод результата
     st.write(f"Класс поставщика: {prediction[0]}")
 
     # Визуализация одного из деревьев решений
     fig, ax = plt.subplots(figsize=(20, 10))
-    plot_tree(model.estimators_[0], feature_names=['x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7', 'x8'],
-               class_names=model.classes_, filled=True, ax=ax)
+    plot_tree(pipe['model'].estimators_[0], feature_names=pipe['prep'].get_feature_names_out(),
+               class_names=pipe['model'].classes_, filled=True, ax=ax)
     st.pyplot(fig)
